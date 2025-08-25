@@ -1,0 +1,5 @@
+{
+  "name": "AI System Analyzer",
+  "description": "An application that analyzes existing systems, including folder structure, standards, CRUD matrix, call structure, and relationships, and suggests improvements for deviations from conventions using AI.",
+  "requestFramePermissions": []
+}
