@@ -15,3 +15,8 @@ export interface AnalysisOption {
   label: string;
   description: string;
 }
+
+export interface FileData {
+    path: string;
+    content: string;
+}

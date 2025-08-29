@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import type { AnalysisType } from '../types';
 import { ANALYSIS_TYPE_MAP } from '../constants';
@@ -10,15 +11,25 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-export const analyzeSystem = async (userInput: string, analyses: AnalysisType[], githubUrl?: string): Promise<string> => {
+export const analyzeSystem = async (userInput: string, analyses: AnalysisType[], githubUrl?: string, folderContent?: string): Promise<string> => {
     const selectedAnalysesText = analyses.map(type => `<li><b>${ANALYSIS_TYPE_MAP[type]}</b></li>`).join('');
+    
+    const escapeHtml = (unsafe: string) => {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
 
     const contextPrompt = `
 You are an expert software architect and senior developer tasked with analyzing an existing system.
 Your entire response must be in Korean.
 
-Based on the GitHub repository and/or the code, file structure, or system description provided, please provide a detailed analysis.
+Based on the GitHub repository, uploaded folder, and/or the code, file structure, or system description provided, please provide a detailed analysis.
 If a GitHub repository URL is provided, please base your analysis on the typical structure and conventions for a project of that nature, in addition to any specific code or description provided.
+If folder content is provided, this is the primary source of truth for the analysis.
 
 The user has requested the following specific analyses:
 <ul>
@@ -43,7 +54,9 @@ Your analysis must be thorough, professional, and easy to understand for a Korea
 <hr>
 <h3>사용자가 제공한 시스템 정보:</h3>
 ${githubUrl ? `<p><b>GitHub Repository:</b> <a href="${githubUrl}" target="_blank">${githubUrl}</a></p>` : ''}
-${userInput ? `<p><b>코드/설명:</b></p><pre><code>${userInput}</code></pre>` : '<p>추가 코드나 설명이 제공되지 않았습니다.</p>'}
+${folderContent ? `<p><b>업로드된 폴더 내용:</b></p><pre><code>${escapeHtml(folderContent)}</code></pre>` : ''}
+${userInput ? `<p><b>추가 코드/설명:</b></p><pre><code>${escapeHtml(userInput)}</code></pre>` : ''}
+${!githubUrl && !folderContent && !userInput ? '<p>추가 코드나 설명이 제공되지 않았습니다.</p>' : ''}
 <hr>
 `;
 

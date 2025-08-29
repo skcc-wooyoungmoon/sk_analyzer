@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import type { AnalysisType } from './types';
+import type { AnalysisType, FileData } from './types';
 import { ANALYSIS_OPTIONS } from './constants';
 import { analyzeSystem } from './services/geminiService';
 import Header from './components/Header';
@@ -8,10 +8,12 @@ import AnalysisSelector from './components/AnalysisSelector';
 import CodeInput from './components/CodeInput';
 import ResultDisplay from './components/ResultDisplay';
 import { AnalyzeIcon, GithubIcon } from './components/Icons';
+import FolderInput from './components/FolderInput';
 
 const App: React.FC = () => {
     const [userInput, setUserInput] = useState<string>('');
     const [githubUrl, setGithubUrl] = useState<string>('');
+    const [folderFiles, setFolderFiles] = useState<FileData[] | null>(null);
     const [selectedAnalyses, setSelectedAnalyses] = useState<Set<AnalysisType>>(new Set(ANALYSIS_OPTIONS.map(opt => opt.id)));
     const [analysisResult, setAnalysisResult] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -30,17 +32,25 @@ const App: React.FC = () => {
     };
 
     const handleAnalyzeClick = useCallback(async () => {
-        if ((!userInput.trim() && !githubUrl.trim()) || selectedAnalyses.size === 0) {
-            setError('분석할 코드, 설명, 또는 GitHub URL을 입력하고, 하나 이상의 분석 유형을 선택해주세요.');
+        if ((!userInput.trim() && !githubUrl.trim() && !folderFiles) || selectedAnalyses.size === 0) {
+            setError('분석할 코드, 설명, GitHub URL, 또는 로컬 폴더를 입력하고, 하나 이상의 분석 유형을 선택해주세요.');
             return;
         }
 
         setIsLoading(true);
         setError(null);
         setAnalysisResult('');
+        
+        let folderContentString: string | undefined = undefined;
+        if (folderFiles && folderFiles.length > 0) {
+            folderContentString = "The user has uploaded a folder with the following structure and file contents:\n\n";
+            folderContentString += folderFiles.map(file => 
+                `--- File: ${file.path} ---\n${file.content}\n`
+            ).join('\n');
+        }
 
         try {
-            const result = await analyzeSystem(userInput, Array.from(selectedAnalyses), githubUrl);
+            const result = await analyzeSystem(userInput, Array.from(selectedAnalyses), githubUrl, folderContentString);
             setAnalysisResult(result);
         } catch (e) {
             console.error(e);
@@ -48,7 +58,7 @@ const App: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [userInput, githubUrl, selectedAnalyses]);
+    }, [userInput, githubUrl, selectedAnalyses, folderFiles]);
 
 
     return (
@@ -74,6 +84,14 @@ const App: React.FC = () => {
                         />
                     </div>
 
+                    <FolderInput onFolderSelect={setFolderFiles} disabled={isLoading} />
+
+                    <div className="flex items-center gap-2 my-1">
+                        <hr className="flex-grow border-slate-700" />
+                        <span className="text-slate-500 text-xs font-semibold">OR</span>
+                        <hr className="flex-grow border-slate-700" />
+                    </div>
+
                     <CodeInput value={userInput} onChange={(e) => setUserInput(e.target.value)} />
                     
                     <h2 className="text-xl font-bold text-cyan-400 mt-2">2. 분석 항목 선택</h2>
@@ -81,7 +99,7 @@ const App: React.FC = () => {
                     
                     <button
                         onClick={handleAnalyzeClick}
-                        disabled={isLoading || (!userInput.trim() && !githubUrl.trim()) || selectedAnalyses.size === 0}
+                        disabled={isLoading || (!userInput.trim() && !githubUrl.trim() && !folderFiles) || selectedAnalyses.size === 0}
                         className="mt-auto w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:scale-100"
                     >
                         {isLoading ? (
