@@ -104,14 +104,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
         if (result) {
             return (
                 <div
-                    className="prose prose-lg prose-invert prose-slate max-w-full p-6 lg:p-8 text-white 
-                               prose-p:text-white prose-li:text-white prose-td:text-white
+                    className="prose prose-lg prose-invert max-w-full p-6 lg:p-8 
+                               prose-p:text-slate-300 prose-li:text-slate-300 prose-td:text-slate-300
                                prose-headings:text-cyan-400 prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
-                               prose-strong:text-white prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
-                               prose-blockquote:border-l-cyan-500 prose-blockquote:text-slate-200
+                               prose-strong:text-slate-100 prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
+                               prose-blockquote:border-l-cyan-500 prose-blockquote:text-slate-300
                                prose-code:bg-slate-700 prose-code:text-amber-400 prose-code:rounded prose-code:px-1.5 prose-code:py-1 prose-code:font-mono prose-code:text-sm
                                prose-pre:bg-slate-900/70 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:text-sm prose-pre:overflow-x-auto
-                               prose-table:border-collapse prose-th:border prose-th:border-slate-600 prose-th:p-2 prose-th:bg-slate-700 prose-th:text-white
+                               prose-table:border-collapse prose-th:border prose-th:border-slate-600 prose-th:p-2 prose-th:bg-slate-700 prose-th:text-slate-100
                                prose-td:border prose-td:border-slate-700 prose-td:p-2"
                     dangerouslySetInnerHTML={{ __html: result }}
                 />
