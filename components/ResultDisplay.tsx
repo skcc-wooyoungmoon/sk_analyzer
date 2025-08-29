@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import TurndownService from 'turndown';
 import { ResultIcon, ErrorIcon, HtmlIcon, MarkdownIcon } from './Icons';
 import Loader from './Loader';
+
+// For mermaid.js
+declare global {
+    interface Window {
+        mermaid?: {
+            initialize: (config: any) => void;
+            run: (config?: any) => Promise<void>;
+        };
+    }
+}
 
 interface ResultDisplayProps {
     result: string;
@@ -30,6 +40,36 @@ const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error }) => {
     
+    useEffect(() => {
+        if (result && !isLoading && !error && window.mermaid) {
+            try {
+                window.mermaid.initialize({
+                    startOnLoad: false,
+                    theme: 'base',
+                    themeVariables: {
+                        background: '#1e293b', // slate-900
+                        primaryColor: '#334155', // slate-700
+                        primaryTextColor: '#f1f5f9', // slate-100
+                        primaryBorderColor: '#64748b', // slate-500
+                        lineColor: '#475569', // slate-600
+                        textColor: '#cbd5e1', // slate-300
+                        fontSize: '14px',
+                        // Flowchart specific
+                        nodeBorder: '#64748b', // slate-500
+                        mainBkg: '#334155', // slate-700
+                        actorBkg: '#334155',
+                        actorBorder: '#64748b',
+                    }
+                });
+                window.mermaid.run({
+                    nodes: document.querySelectorAll('.mermaid')
+                });
+            } catch (e) {
+                console.error("Error rendering Mermaid diagram:", e);
+            }
+        }
+    }, [result, isLoading, error]);
+
     const handleDownload = (content: string, fileName: string, mimeType: string) => {
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
@@ -64,13 +104,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
         if (result) {
             return (
                 <div
-                    className="prose prose-lg prose-invert prose-slate max-w-full p-6 lg:p-8 text-slate-200 
+                    className="prose prose-lg prose-invert prose-slate max-w-full p-6 lg:p-8 text-white 
+                               prose-p:text-white prose-li:text-white prose-td:text-white
                                prose-headings:text-cyan-400 prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
-                               prose-strong:text-slate-100 prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
-                               prose-blockquote:border-l-cyan-500 prose-blockquote:text-slate-300
+                               prose-strong:text-white prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
+                               prose-blockquote:border-l-cyan-500 prose-blockquote:text-slate-200
                                prose-code:bg-slate-700 prose-code:text-amber-400 prose-code:rounded prose-code:px-1.5 prose-code:py-1 prose-code:font-mono prose-code:text-sm
                                prose-pre:bg-slate-900/70 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:text-base
-                               prose-table:border-collapse prose-th:border prose-th:border-slate-600 prose-th:p-2 prose-th:bg-slate-700 prose-th:text-slate-200
+                               prose-table:border-collapse prose-th:border prose-th:border-slate-600 prose-th:p-2 prose-th:bg-slate-700 prose-th:text-white
                                prose-td:border prose-td:border-slate-700 prose-td:p-2"
                     dangerouslySetInnerHTML={{ __html: result }}
                 />
